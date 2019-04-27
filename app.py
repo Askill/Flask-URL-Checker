@@ -17,16 +17,15 @@ app = Flask(__name__)
 @app.route('/test/')
 def index():
     url = request.args.get("url")
-    print(url)
+    #print(url)
     obj = sitemapper.url(url)
-    obj.run_check()
-    print(obj.sites)
+    obj.run_check(url)
 
     with open('your_file.txt', 'w') as f:
         for item in obj.sites:
             f.write("%s\n" % item)
 
-    return obj.sites
+    return "done"
 
 
 if __name__ == '__main__':
