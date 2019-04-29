@@ -18,7 +18,9 @@ class url:
 
     exclude = {
         "title=Spezial",
-        "offset="
+        "offset=", 
+        "#",
+        "&"
     }
 
     def __init__(self, url):
@@ -34,7 +36,7 @@ class url:
         for element in self.exclude:
             if element in root:
                 return
-        #print(root)
+        print(root)
         try:
             site = requests.get(root)
             tree = html.fromstring(site.content)
@@ -50,9 +52,6 @@ class url:
                     nlinks.append(link)
                 else:
                     nlinks.append(urljoin(site.url, link))
-                    print(site.url, link)
-                    print(urljoin(site.url, link))
- 
 
         self.sites[root] = nlinks
 
