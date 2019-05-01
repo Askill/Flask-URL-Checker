@@ -7,8 +7,6 @@ class url:
 
     url = ""                # the url of the website to be checked
     sites = dict()          # dic. with all sites and urls on those sites
-    does_work = []          # array with all prev. positiv tested urls
-    does_not_work = dict()  # dic. with all not working urls and the site that linked there
     header_values = {
                 'Connection:' : 'Keep-alive',
                 'name' : 'Michael Foord',
@@ -32,7 +30,8 @@ class url:
         if root in self.sites or self.url.rsplit('/')[2] not in root:
             #print(self.url.rsplit('/')[2])
             return
-
+        if "https" not in root:
+            return
         for element in self.exclude:
             if element in root:
                 return

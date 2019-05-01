@@ -4,6 +4,7 @@ import urlchecker
 import sitemapper
 import _pickle as cPickle
 import json
+import sys
 #----------------------------------------------------------------------------#
 # App Config.
 #----------------------------------------------------------------------------#
@@ -20,22 +21,33 @@ def index():
     #print(url)
     obj = sitemapper.url(url)
     obj.run_check(url)
-
-    with open('your_file.txt', 'w') as f:
-        for item in obj.sites:
-            f.write("%s\n" % item)
-
+    
     nodes = ""
-    for link in obj.sites:
-        nodes += '{' + 'id: "{}", label: "{}", group: {}'.format(link, link.rsplit('/')[-1], 0) + '},'
-    nodes = nodes[:-1]
+    drawn = []
+    for key, values in obj.sites.items():
+        label = key.rsplit('/')[-1]
+        if label == "":
+            label = key.rsplit('/')[-2]
+        nodes += '{' + 'id: "{}", label: "{}", group: {}'.format(key, label, 0) + '},\n'
+        drawn.append(key)
+
+    for key, values in obj.sites.items():
+        for value in values:
+            if value not in drawn and value not in obj.sites:
+                nodes += '{' + 'id: "{}", label: "{}", group: {}'.format(value, value, 1) + '},\n'
+                drawn.append(value)
+
+    nodes = nodes[:-2] + "\n"
 
     edges = ""
     for key, values in obj.sites.items():
         for value in values:
-            edges += '{' + 'from: "{}", to: "{}"'.format(key, value) + '},'
-    edges = edges[:-1]
+            edges += '{' + 'from: "{}", to: "{}"'.format(key, value) + '},\n'
+    edges = edges[:-2] + "\n"
 
+    with open('./cached/' + url.rsplit('/')[2] + '.txt', 'w') as f:
+        f.write(nodes)
+        f.write(edges)
 
     results = '''
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
@@ -60,36 +72,40 @@ def index():
             var options = {
                 autoResize: true,
                 layout: {
-                    improvedLayout:false,
-                    randomSeed: undefined,
-                    hierarchical: {
-                        enabled:false,
-                        levelSeparation: 150,
-                        nodeSpacing: 100,
-                        treeSpacing: 200,
-                        blockShifting: true,
-                        edgeMinimization: true,
-                        parentCentralization: true,
-                        direction: 'UD',        // UD, DU, LR, RL
-                        sortMethod: 'hubsize'   // hubsize, directed
-                    }
+                    improvedLayout:true,
+                    randomSeed: 10,
+                    
                 },
                 height: '100%',
                 width: '100%',
                 nodes: {
                     shape: 'dot',
-                    size: 30,
+                    size: 8,
                     font: {
-                        size: 32,
+                        size: 5,
                         color: '#ffffff'
                     },
-                    borderWidth: 2
+                    borderWidth: 1
                 },
                 edges: {
-                    width: 2
+                    width: 1,
+                    color: {
+                    color:'#356b6b',
+                    highlight:'#4286f4',
+                    hover: '#41f4f4',
+                    inherit: 'from',
+                    opacity:1.0
+                    },
+                },
+                interaction: {
+                    hoverConnectedEdges: true,
+                    tooltipDelay: 200
                 }
             };
             network = new vis.Network(container, data, options);
+            network.on("stabilizationIterationsDone", function () {
+                network.setOptions( { physics: false } );
+            });
         </script>
         '''
     return results
@@ -97,6 +113,7 @@ def index():
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 80))
+    sys.setrecursionlimit(2000)
     app.run(host='0.0.0.0', port=port)
 
 
