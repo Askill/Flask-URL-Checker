@@ -1671,6 +1671,7 @@
 {id: "http://www.sriw.de", label: "http://www.sriw.de", group: 1},
 {id: "http://www.geodatendienstekodex.de/images/pdf/Datenschutz-Kodex.pdf?layoutId=54130", label: "http://www.geodatendienstekodex.de/images/pdf/Datenschutz-Kodex.pdf?layoutId=54130", group: 1},
 {id: "https://support.google.com/legal/troubleshooter/1114905?rd=1#ts=1115658%2C1115689%2C2364966%2C1115789", label: "https://support.google.com/legal/troubleshooter/1114905?rd=1#ts=1115658%2C1115689%2C2364966%2C1115789", group: 1}
+end
 {from: "https://www.google.de/about/company/facts/", to: "https://about.google/"},
 {from: "https://www.google.de/about/company/facts/", to: "https://about.google/"},
 {from: "https://www.google.de/about/company/facts/", to: "https://about.google/"},

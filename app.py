@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, render_template
 import os
 import urlchecker
 import sitemapper
@@ -11,13 +11,9 @@ import sys
 
 app = Flask(__name__)
 
-#----------------------------------------------------------------------------#
-# Controllers.
-#----------------------------------------------------------------------------#
 
-@app.route('/test/')
-def index():
-    url = request.args.get("url")
+def map(url):
+
     #print(url)
     obj = sitemapper.url(url)
     obj.run_check(url)
@@ -46,74 +42,48 @@ def index():
     edges = edges[:-2] + "\n"
 
     with open('./cached/' + url.rsplit('/')[2] + '.txt', 'w') as f:
-        f.write(nodes)
+        f.write(nodes + "\n")
         f.write(edges)
 
-    results = '''
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
-    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css">
-    <div id="mynetwork" style = "background-color: grey;"></div>
-        <script type="text/javascript">
-            var color = 'gray';
-        
-            var nodes = [
-    ''' + nodes + '''
-            ];
-            var edges = [
-    ''' + edges + '''
-            ];
-        
-            // create a network
-            var container = document.getElementById('mynetwork');
-            var data = {
-                nodes: nodes,
-                edges: edges
-            };
-            var options = {
-                autoResize: true,
-                layout: {
-                    improvedLayout:true,
-                    randomSeed: 10,
-                    
-                },
-                height: '100%',
-                width: '100%',
-                nodes: {
-                    shape: 'dot',
-                    size: 8,
-                    font: {
-                        size: 5,
-                        color: '#ffffff'
-                    },
-                    borderWidth: 1
-                },
-                edges: {
-                    width: 1,
-                    color: {
-                    color:'#356b6b',
-                    highlight:'#4286f4',
-                    hover: '#41f4f4',
-                    inherit: 'from',
-                    opacity:1.0
-                    },
-                },
-                interaction: {
-                    hoverConnectedEdges: true,
-                    tooltipDelay: 200
-                }
-            };
-            network = new vis.Network(container, data, options);
-            network.on("stabilizationIterationsDone", function () {
-                network.setOptions( { physics: false } );
-            });
-        </script>
-        '''
-    return results
+    return nodes, edges
+
+
+def load(url):
+    nodes = ""
+    edges = ""
+    end = False
+    with open('./cached/{}.txt'.format(url)) as f:
+        for line in f:
+            if  "end" in line:
+                end = True
+                continue
+            if not end:
+                nodes += line
+            else:
+                edges += line
+
+    return nodes, edges
+
+#----------------------------------------------------------------------------#
+# Controllers.
+#----------------------------------------------------------------------------#
+
+@app.route('/test/')
+def index():
+    url = request.args.get("url")
+    cached = os.listdir("./cached")
+    if url + '.txt' not in cached:
+        nodes, edges = map(url)
+    else:
+        nodes, edges = load(url)
+
+    return render_template('graph.html', nodes = nodes, edges = edges)
 
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 80))
     sys.setrecursionlimit(2000)
+    load('www.google.de')
     app.run(host='0.0.0.0', port=port)
 
 
