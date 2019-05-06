@@ -41,28 +41,18 @@ def map(url):
             edges += '{' + 'from: "{}", to: "{}"'.format(key, value) + '},\n'
     edges = edges[:-2] + "\n"
 
-    with open('./cached/' + url.rsplit('/')[2] + '.txt', 'w') as f:
-        f.write(nodes + "\n")
+    with open('./cached/' + url.rsplit('/')[2] + '.txt', 'w', encoding='utf-8') as f:
+        f.write(nodes + "end\n")
         f.write(edges)
 
     return nodes, edges
 
 
 def load(url):
-    nodes = ""
-    edges = ""
-    end = False
-    with open('./cached/{}.txt'.format(url)) as f:
-        for line in f:
-            if  "end" in line:
-                end = True
-                continue
-            if not end:
-                nodes += line
-            else:
-                edges += line
-
-    return nodes, edges
+    with open('./cached/{}.txt'.format(url),  'r', encoding='utf-8') as f:
+        content = f.read()
+        nodes, edges = content.split("end\n")
+        return nodes, edges
 
 #----------------------------------------------------------------------------#
 # Controllers.
@@ -72,10 +62,11 @@ def load(url):
 def index():
     url = request.args.get("url")
     cached = os.listdir("./cached")
-    if url + '.txt' not in cached:
+    withoutProtocol = url.rsplit('/')[2]
+    if withoutProtocol + '.txt' not in cached:
         nodes, edges = map(url)
     else:
-        nodes, edges = load(url)
+        nodes, edges = load(withoutProtocol)
 
     return render_template('graph.html', nodes = nodes, edges = edges)
 
@@ -83,7 +74,6 @@ def index():
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 80))
     sys.setrecursionlimit(2000)
-    load('www.google.de')
     app.run(host='0.0.0.0', port=port)
 
 

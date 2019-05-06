@@ -5,8 +5,9 @@
         <script type="text/javascript">
             var color = 'gray';
         
-            var nodes = [{{ nodes }}];
-            var edges = [{{ edges }}];
+            var nodes = [{{ nodes | safe }} ];
+            
+            var edges = [{{ edges | safe }} ];
         
             // create a network
             var container = document.getElementById('mynetwork');
