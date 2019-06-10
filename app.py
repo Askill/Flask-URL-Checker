@@ -58,9 +58,10 @@ def load(url):
 # Controllers.
 #----------------------------------------------------------------------------#
 
-@app.route('/test/')
+@app.route('/')
 def index():
-    url = request.args.get("url")
+    #url = request.args.get("url")
+    url = "https://www.google.com"
     cached = os.listdir("./cached")
     withoutProtocol = url.rsplit('/')[2]
     if withoutProtocol + '.txt' not in cached:
@@ -73,7 +74,7 @@ def index():
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 80))
-    sys.setrecursionlimit(2000)
+    sys.setrecursionlimit(5000)
     app.run(host='0.0.0.0', port=port)
 
 

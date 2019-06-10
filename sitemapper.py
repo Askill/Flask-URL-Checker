@@ -16,7 +16,7 @@ class url:
 
     exclude = {
         "title=Spezial",
-        "offset=", 
+        "doodles/", 
         "#",
         "&"
     }
