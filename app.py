@@ -1,8 +1,6 @@
 from flask import Flask, request, render_template
 import os
-import urlchecker
 import sitemapper
-import _pickle as cPickle
 import json
 import sys
 #----------------------------------------------------------------------------#
@@ -12,46 +10,42 @@ import sys
 app = Flask(__name__)
 
 
-def map(url):
-
-    #print(url)
+def graph(url):
     obj = sitemapper.url(url)
     obj.run_check(url)
     
-    nodes = ""
+    nodes = []
     drawn = []
     for key, values in obj.sites.items():
         label = key.rsplit('/')[-1]
         if label == "":
             label = key.rsplit('/')[-2]
-        nodes += '{' + 'id: "{}", label: "{}", group: {}'.format(key, label, 0) + '},\n'
+        nodes.append('{' + "id: '{}', label: '{}', group: {}".format(key, label, 0) + '}')
         drawn.append(key)
 
     for key, values in obj.sites.items():
         for value in values:
             if value not in drawn and value not in obj.sites:
-                nodes += '{' + 'id: "{}", label: "{}", group: {}'.format(value, value, 1) + '},\n'
+                nodes.append('{' + "id: '{}', label: '{}', group: {}".format(value, value, 1) + '}')
                 drawn.append(value)
 
-    nodes = nodes[:-2] + "\n"
-
-    edges = ""
+    edges = []
     for key, values in obj.sites.items():
         for value in values:
-            edges += '{' + 'from: "{}", to: "{}"'.format(key, value) + '},\n'
-    edges = edges[:-2] + "\n"
-
-    with open('./cached/' + url.rsplit('/')[2] + '.txt', 'w', encoding='utf-8') as f:
-        f.write(nodes + "end\n")
-        f.write(edges)
+            edges.append('{' + "from: '{}', to: '{}'".format(key, value) + '}')
+    
+    with open('./cached/' + url.rsplit('/')[2] + '.json', 'w', encoding='utf-8') as f:
+        f.write(json.dumps({"nodes": nodes,"edges": edges}))
 
     return nodes, edges
 
 
 def load(url):
-    with open('./cached/{}.txt'.format(url),  'r', encoding='utf-8') as f:
+    with open('./cached/{}.json'.format(url),  'r', encoding='utf-8') as f:
         content = f.read()
-        nodes, edges = content.split("end\n")
+        jsonContent = json.loads(content)
+        nodes =  jsonContent["nodes"]
+        edges =  jsonContent["edges"]
         return nodes, edges
 
 #----------------------------------------------------------------------------#
@@ -61,13 +55,17 @@ def load(url):
 @app.route('/')
 def index():
     #url = request.args.get("url")
-    url = "https://www.google.com"
+    url = "https://www.google.de"
     cached = os.listdir("./cached")
     withoutProtocol = url.rsplit('/')[2]
-    if withoutProtocol + '.txt' not in cached:
-        nodes, edges = map(url)
+    if withoutProtocol + '.json' not in cached:
+        nodes, edges = graph(url)
     else:
         nodes, edges = load(withoutProtocol)
+    
+    str1 = "," 
+    nodes = str1.join(nodes)
+    edges = str1.join(edges)
 
     return render_template('graph.html', nodes = nodes, edges = edges)
 
