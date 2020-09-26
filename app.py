@@ -14,6 +14,8 @@ def graph(url):
     obj = sitemapper.url(url)
     obj.run_check(url)
     
+    current = os.path.dirname(__file__)
+
     nodes = []
     drawn = []
     for key, values in obj.sites.items():
@@ -34,14 +36,16 @@ def graph(url):
         for value in values:
             edges.append('{' + "from: '{}', to: '{}'".format(key, value) + '}')
     
-    with open('./cached/' + url.rsplit('/')[2] + '.json', 'w', encoding='utf-8') as f:
+    with open(os.path.join(current, './cached/' + url.rsplit('/')[2] + '.json'), 'w', encoding='utf-8') as f:
         f.write(json.dumps({"nodes": nodes,"edges": edges}))
 
     return nodes, edges
 
 
 def load(url):
-    with open('./cached/{}.json'.format(url),  'r', encoding='utf-8') as f:
+    print("Loaded from cache: " + url)
+    current = os.path.dirname(__file__)
+    with open(os.path.join(current,'./cached/{}.json'.format(url)),  'r', encoding='utf-8') as f:
         content = f.read()
         jsonContent = json.loads(content)
         nodes =  jsonContent["nodes"]
@@ -51,12 +55,13 @@ def load(url):
 #----------------------------------------------------------------------------#
 # Controllers.
 #----------------------------------------------------------------------------#
+# input for urls over url
 
 @app.route('/')
 def index():
-    #url = request.args.get("url")
-    url = "https://www.google.de"
-    cached = os.listdir("./cached")
+    url = request.args.get("url")
+
+    cached = os.listdir(os.path.join(os.path.dirname(__file__), "./cached"))
     withoutProtocol = url.rsplit('/')[2]
     if withoutProtocol + '.json' not in cached:
         nodes, edges = graph(url)

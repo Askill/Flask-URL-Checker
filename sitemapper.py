@@ -15,10 +15,6 @@ class url:
                 'User-Agent': 'Mozilla 4/0'}
 
     exclude = {
-        "title=Spezial",
-        "doodles/", 
-        "#",
-        "&"
     }
 
     def __init__(self, url):
