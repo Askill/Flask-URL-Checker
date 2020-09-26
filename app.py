@@ -1,6 +1,6 @@
 from flask import Flask, request, render_template
 import os
-import sitemapper
+from URL import URL
 import json
 import sys
 #----------------------------------------------------------------------------#
@@ -11,13 +11,14 @@ app = Flask(__name__)
 
 
 def graph(url):
-    obj = sitemapper.url(url)
+    obj = URL(url)
     obj.run_check(url)
     
     current = os.path.dirname(__file__)
 
     nodes = []
     drawn = []
+    edges = []
     for key, values in obj.sites.items():
         label = key.rsplit('/')[-1]
         if label == "":
@@ -25,14 +26,11 @@ def graph(url):
         nodes.append('{' + "id: '{}', label: '{}', group: {}".format(key, label, 0) + '}')
         drawn.append(key)
 
-    for key, values in obj.sites.items():
         for value in values:
             if value not in drawn and value not in obj.sites:
                 nodes.append('{' + "id: '{}', label: '{}', group: {}".format(value, value, 1) + '}')
                 drawn.append(value)
 
-    edges = []
-    for key, values in obj.sites.items():
         for value in values:
             edges.append('{' + "from: '{}', to: '{}'".format(key, value) + '}')
     

@@ -3,7 +3,7 @@ from lxml import html
 import requests
 
 
-class url:
+class URL:
 
     url = ""                # the url of the website to be checked
     sites = dict()          # dic. with all sites and urls on those sites
@@ -14,8 +14,14 @@ class url:
                 'language' : 'English',
                 'User-Agent': 'Mozilla 4/0'}
 
-    exclude = {
-    }
+    exclude = [
+        "title=Spezial",
+        "doodles",
+        "#",
+        "&"
+    ]
+        
+    
 
     def __init__(self, url):
         self.url = url
