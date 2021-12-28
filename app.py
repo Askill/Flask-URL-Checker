@@ -9,34 +9,36 @@ import sys
 
 app = Flask(__name__)
 
-
-def graph(url):
-    obj = Crawler(url)
-    obj.run_check(url)
-    
-    current = os.path.dirname(__file__)
-
+def transformForDrawing(n, e):
     nodes = []
     drawn = []
     edges = []
-    for key, values in obj.sites.items():
-        label = key.rsplit('/')[-1]
+    for nn in n:
+        label = nn.rsplit('/')[-1]
         if label == "":
-            label = key.rsplit('/')[-2]
-        nodes.append('{' + "id: '{}', label: '{}', group: {}".format(key, label, 0) + '}')
-        drawn.append(key)
+            label = nn.rsplit('/')[-2]
+        nodes.append('{' + "id: '{}', label: '{}', group: {}".format(nn, label, 0) + '}\n')
+        drawn.append(nn)
 
-        for value in values:
-            if value not in drawn and value not in obj.sites:
-                nodes.append('{' + "id: '{}', label: '{}', group: {}".format(value, value, 1) + '}')
-                drawn.append(value)
+    for ee in e:
+        if ee[1] not in drawn and ee[1] not in n:
+            nodes.append('{' + "id: '{}', label: '{}', group: {}".format(ee[1], ee[1], 1) + '}\n')
+            drawn.append(ee[1])
 
-        for value in values:
-            edges.append('{' + "from: '{}', to: '{}'".format(key, value) + '}')
+        edges.append('{' + "from: '{}', to: '{}'".format(ee[0], ee[1]) + '}\n')
+
+    return nodes, edges
+
+def graph(url):
+    obj = Crawler()
+    obj.run(url, 5000)
     
+    current = os.path.dirname(__file__)
+    n, e = obj.getNodesEdges()
     with open(os.path.join(current, './cached/' + url.rsplit('/')[2] + '.json'), 'w', encoding='utf-8') as f:
-        f.write(json.dumps({"nodes": nodes,"edges": edges}))
+        f.write(json.dumps({"nodes": n,"edges": e}))
 
+    nodes, edges = transformForDrawing(n, e)
     return nodes, edges
 
 
@@ -48,6 +50,7 @@ def load(url):
         jsonContent = json.loads(content)
         nodes =  jsonContent["nodes"]
         edges =  jsonContent["edges"]
+        nodes, edges = transformForDrawing(nodes, edges)
         return nodes, edges
 
 #----------------------------------------------------------------------------#
@@ -57,8 +60,7 @@ def load(url):
 
 @app.route('/')
 def index():
-    url = "beauty"
-
+    url = request.args.get("url")
     cached = os.listdir(os.path.join(os.path.dirname(__file__), "./cached"))
     withoutProtocol = url
     if withoutProtocol + '.json' not in cached:
@@ -69,9 +71,8 @@ def index():
     str1 = "," 
     nodes = str1.join(nodes)
     edges = str1.join(edges)
-    with open("./templates/data.js", "w") as f:
-        f.write(f"var nodes={nodes}\nvar=edges={edges}")
-    return render_template('graph.html')
+
+    return render_template('graph.html', nodes = nodes, edges = edges)
 
 
 if __name__ == '__main__':

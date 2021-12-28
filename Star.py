@@ -42,32 +42,31 @@ class Crawler:
         if logger:
             self.logger = logger
         else:
-
             self.logger = logging.Logger(
                 name="star_crawler", level=logging.INFO)
 
     def run(self, root, limit, sleep_time=0):
         self.url = root
-        nlinks = [root]
+        unchecked = [root]
 
-        while nlinks and len(self.links) < limit:
-            root = nlinks.pop()
+        while unchecked and len(self.links) < limit:
+            root = unchecked.pop()
             if root in self.links or self.url.rsplit('/')[2] not in root:
-                return
+                continue
             if "https" not in root:
-                return
+                continue
             for element in self.exclude:
                 if element in root:
-                    return
+                    continue
             self.logger.info(root)
             try:
                 site = requests.get(root)
                 tree = html.fromstring(site.content)
                 links = tree.xpath('//a/@href')
             except:
-                return
+                continue
 
-            nlinks = []
+            nlinks=[]
             for link in links:
                 if link not in nlinks:
                     if link.startswith("http"):
@@ -75,6 +74,7 @@ class Crawler:
                     else:
                         nlinks.append(urljoin(site.url, link))
 
+            unchecked += nlinks
             self.links[root] = nlinks
             sleep(sleep_time)
 
