@@ -1,6 +1,6 @@
 from flask import Flask, request, render_template
 import os
-from URL import URL
+from Star import Crawler
 import json
 import sys
 #----------------------------------------------------------------------------#
@@ -11,7 +11,7 @@ app = Flask(__name__)
 
 
 def graph(url):
-    obj = URL(url)
+    obj = Crawler(url)
     obj.run_check(url)
     
     current = os.path.dirname(__file__)
@@ -57,10 +57,10 @@ def load(url):
 
 @app.route('/')
 def index():
-    url = request.args.get("url")
+    url = "beauty"
 
     cached = os.listdir(os.path.join(os.path.dirname(__file__), "./cached"))
-    withoutProtocol = url.rsplit('/')[2]
+    withoutProtocol = url
     if withoutProtocol + '.json' not in cached:
         nodes, edges = graph(url)
     else:
@@ -69,8 +69,9 @@ def index():
     str1 = "," 
     nodes = str1.join(nodes)
     edges = str1.join(edges)
-
-    return render_template('graph.html', nodes = nodes, edges = edges)
+    with open("./templates/data.js", "w") as f:
+        f.write(f"var nodes={nodes}\nvar=edges={edges}")
+    return render_template('graph.html')
 
 
 if __name__ == '__main__':

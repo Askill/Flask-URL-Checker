@@ -1,3 +1,6 @@
 
 __pycache__/
 .vscode/
+cached/beauty.json
+cached/www.budgetbytes.com.json
+templates/data.js
