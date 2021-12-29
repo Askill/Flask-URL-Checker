@@ -14,18 +14,22 @@ def transformForDrawing(n, e):
     drawn = []
     edges = []
     for nn in n:
+        if "web.archive.org" in nn:
+            continue
         label = nn.rsplit('/')[-1]
         if label == "":
             label = nn.rsplit('/')[-2]
-        nodes.append('{' + "id: '{}', label: '{}', group: {}".format(nn, label, 0) + '}\n')
+        nodes.append({"id": nn, "label":  label, "group": 0})
         drawn.append(nn)
 
-    for ee in e:
-        if ee[1] not in drawn and ee[1] not in n:
-            nodes.append('{' + "id: '{}', label: '{}', group: {}".format(ee[1], ee[1], 1) + '}\n')
-            drawn.append(ee[1])
+    for e0, e1 in e:
+        if "web.archive.org" in e1:
+            continue
+        if e1 not in drawn and e1 not in n:
+            nodes.append({"id": e1, "label": e1, "group": 1})
+            drawn.append(e1)
 
-        edges.append('{' + "from: '{}', to: '{}'".format(ee[0], ee[1]) + '}\n')
+        edges.append({"from": e0, "to": e1})
 
     return nodes, edges
 
@@ -48,10 +52,7 @@ def load(url):
     with open(os.path.join(current,'./cached/{}.json'.format(url)),  'r', encoding='utf-8') as f:
         content = f.read()
         jsonContent = json.loads(content)
-        nodes =  jsonContent["nodes"]
-        edges =  jsonContent["edges"]
-        nodes, edges = transformForDrawing(nodes, edges)
-        return nodes, edges
+        return transformForDrawing(jsonContent["nodes"], jsonContent["edges"])
 
 #----------------------------------------------------------------------------#
 # Controllers.
@@ -62,22 +63,19 @@ def load(url):
 def index():
     url = request.args.get("url")
     cached = os.listdir(os.path.join(os.path.dirname(__file__), "./cached"))
-    withoutProtocol = url
+    withoutProtocol = url.split("/")[2]
     if withoutProtocol + '.json' not in cached:
         nodes, edges = graph(url)
     else:
         nodes, edges = load(withoutProtocol)
     
-    str1 = "," 
-    nodes = str1.join(nodes)
-    edges = str1.join(edges)
 
-    return render_template('graph.html', nodes = nodes, edges = edges)
+    print(url)
+    return render_template('graph.html', nodes = json.dumps(nodes), edges = json.dumps(edges))
 
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 80))
-    sys.setrecursionlimit(5000)
     app.run(host='0.0.0.0', port=port)
 
 

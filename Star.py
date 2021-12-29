@@ -55,10 +55,18 @@ class Crawler:
                 continue
             if "https" not in root:
                 continue
+
+            clean = False
             for element in self.exclude:
                 if element in root:
-                    continue
-            self.logger.info(root)
+                    clean = False
+                    break
+                else:
+                    clean = True
+            if not clean:
+                continue
+
+            self.logger.warning(f"{len(self.links)} {root}")
             try:
                 site = requests.get(root)
                 tree = html.fromstring(site.content)
