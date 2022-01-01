@@ -101,9 +101,9 @@
             function draw() {
                 var color = 'gray';
             
-                var nodes = {{ nodes | safe }} ;
+                var nodes = {{nodes}} ;
                 
-                var edges = {{ edges | safe }} ;
+                var edges = {{edges}} ;
                 // create a network
                 var container = document.getElementById('mynetwork');
                 var data = {

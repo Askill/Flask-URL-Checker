@@ -1,13 +1,8 @@
-from time import sleep, time
+from time import sleep
 from urllib.parse import urljoin
 from lxml import html
-from networkx.readwrite.json_graph import tree
 import requests
 import logging
-import networkx as nx
-from pyvis.network import Network
-import matplotlib.pyplot as plt
-import os
 
 
 class Crawler:
@@ -74,7 +69,7 @@ class Crawler:
             except:
                 continue
 
-            nlinks=[]
+            nlinks = []
             for link in links:
                 if link not in nlinks:
                     if link.startswith("http"):
@@ -101,19 +96,4 @@ class Crawler:
         for node in nodes:
             g.add_node(node)
         for f, t in edges:
-            g.add_edge(f,t)
-
-
-    def draw(self):
-        net = Network(directed=True, layout=False, bgcolor="black", font_color="white")
-        G = nx.DiGraph()
-        self.makeGraph(G)
-        net.from_nx(G)
-        net.height = "100%"
-        net.width = "100%"
-        net.margin = "0"
-        net.padding = "0"
-        
-        net.show(os.path.join(os.path.dirname(__file__), './mygraph.html'))
-
-
+            g.add_edge(f, t)

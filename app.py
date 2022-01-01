@@ -1,13 +1,8 @@
-from flask import Flask, request, render_template
 import os
 from Star import Crawler
 import json
-import sys
-#----------------------------------------------------------------------------#
-# App Config.
-#----------------------------------------------------------------------------#
+import argparse
 
-app = Flask(__name__)
 
 def transformForDrawing(n, e):
     nodes = []
@@ -33,14 +28,15 @@ def transformForDrawing(n, e):
 
     return nodes, edges
 
-def graph(url):
+
+def graph(url, limit):
     obj = Crawler()
-    obj.run(url, 5000)
-    
+    obj.run(url, limit)
+
     current = os.path.dirname(__file__)
     n, e = obj.getNodesEdges()
     with open(os.path.join(current, './cached/' + url.rsplit('/')[2] + '.json'), 'w', encoding='utf-8') as f:
-        f.write(json.dumps({"nodes": n,"edges": e}))
+        f.write(json.dumps({"nodes": n, "edges": e}))
 
     nodes, edges = transformForDrawing(n, e)
     return nodes, edges
@@ -49,37 +45,40 @@ def graph(url):
 def load(url):
     print("Loaded from cache: " + url)
     current = os.path.dirname(__file__)
-    with open(os.path.join(current,'./cached/{}.json'.format(url)),  'r', encoding='utf-8') as f:
+    with open(os.path.join(current, './cached/{}.json'.format(url)),  'r', encoding='utf-8') as f:
         content = f.read()
         jsonContent = json.loads(content)
         return transformForDrawing(jsonContent["nodes"], jsonContent["edges"])
 
-#----------------------------------------------------------------------------#
-# Controllers.
-#----------------------------------------------------------------------------#
-# input for urls over url
 
-@app.route('/')
-def index():
-    url = request.args.get("url")
-    cached = os.listdir(os.path.join(os.path.dirname(__file__), "./cached"))
+def main(url, pathToCached):
     withoutProtocol = url.split("/")[2]
-    if withoutProtocol + '.json' not in cached:
-        nodes, edges = graph(url)
+
+    if pathToCached is not None:
+        nodes, edges = graph(url, limit)
     else:
         nodes, edges = load(withoutProtocol)
-    
 
-    print(url)
-    return render_template('graph.html', nodes = json.dumps(nodes), edges = json.dumps(edges))
+    pathToTemplate = os.path.join(os.path.dirname(
+        __file__), "templates", "graph.html")
+    with open(pathToTemplate, "rt") as fin:
+        with open(withoutProtocol + ".html", "wt") as fout:
+            fout.write(fin.read().replace('{{nodes}}', json.dumps(
+                nodes)).replace('{{edges}}', json.dumps(edges)))
 
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 80))
-    app.run(host='0.0.0.0', port=port)
+    parser = argparse.ArgumentParser(
+        description='Map any website. Only map websites you own, as this tool will open any link on a given website, which can potentially incure high costs for the owner and be interpreted as a small scale DOS attack.')
+    parser.add_argument('-url', type=str, help='url to map', required=True)
+    parser.add_argument('--plot-cached', type=str,
+                        help='path to cached file', required=False)
+    parser.add_argument(
+        '-limit', type=str, help='maximum number of nodes on original site', required=False, default=5000)
 
+    args = parser.parse_args()
+    url = args.url
+    pathToCached = args.plot_cached
+    limit = args.limit
 
-    
-
-
-
+    main(url, pathToCached, limit)
