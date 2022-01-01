@@ -61,7 +61,7 @@ class Crawler:
             if not clean:
                 continue
 
-            self.logger.warning(f"{len(self.links)} {root}")
+            self.logger.info(f"{len(self.links)} {root}")
             try:
                 site = requests.get(root)
                 tree = html.fromstring(site.content)

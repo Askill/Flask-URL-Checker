@@ -4,7 +4,7 @@ import json
 import argparse
 
 
-def transformForDrawing(n, e):
+def transformForPlotting(n, e):
     nodes = []
     drawn = []
     edges = []
@@ -33,31 +33,28 @@ def graph(url, limit):
     obj = Crawler()
     obj.run(url, limit)
 
-    current = os.path.dirname(__file__)
+    current = os.getcwd()
     n, e = obj.getNodesEdges()
     with open(os.path.join(current, './cached/' + url.rsplit('/')[2] + '.json'), 'w', encoding='utf-8') as f:
         f.write(json.dumps({"nodes": n, "edges": e}))
 
-    nodes, edges = transformForDrawing(n, e)
-    return nodes, edges
+    return transformForPlotting(n, e)
 
 
-def load(url):
-    print("Loaded from cache: " + url)
-    current = os.path.dirname(__file__)
-    with open(os.path.join(current, './cached/{}.json'.format(url)),  'r', encoding='utf-8') as f:
+def load(pathToCached):
+    with open(pathToCached,  'r', encoding='utf-8') as f:
         content = f.read()
         jsonContent = json.loads(content)
-        return transformForDrawing(jsonContent["nodes"], jsonContent["edges"])
+        return transformForPlotting(jsonContent["nodes"], jsonContent["edges"])
 
 
-def main(url, pathToCached):
+def mapSite(url, pathToCached, limit):
     withoutProtocol = url.split("/")[2]
 
-    if pathToCached is not None:
+    if pathToCached is None:
         nodes, edges = graph(url, limit)
     else:
-        nodes, edges = load(withoutProtocol)
+        nodes, edges = load(pathToCached)
 
     pathToTemplate = os.path.join(os.path.dirname(
         __file__), "templates", "graph.html")
@@ -81,4 +78,4 @@ if __name__ == '__main__':
     pathToCached = args.plot_cached
     limit = args.limit
 
-    main(url, pathToCached, limit)
+    mapSite(url, pathToCached, limit)

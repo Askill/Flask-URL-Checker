@@ -4,3 +4,10 @@ __pycache__/
 cached/beauty.json
 cached/www.budgetbytes.com.json
 templates/data.js
+dist/
+*.egg-info
+VERSION
+**/__meta__.py
+cached/visjs.github.io.json
+cached/www.dinneratthezoo.com.json
+cached/www.patricematz.de.json
